@@ -154,7 +154,6 @@ export default function Home() {
                         field.onChange(sanitizedValue);
                       }}
                       inputMode="numeric"
-                      pattern="\\d{4}"
                       maxLength={4}
                       disabled={isTerminalState}
                       placeholder="0000"
@@ -184,7 +183,7 @@ export default function Home() {
                 : status === "error"
                   ? "border-red-500/60 bg-red-500/10 text-red-300"
                   : "border-red-700/70 bg-red-700/10 text-red-200"
-            }`}
+            } animate-pulse`}
           >
             {statusMessage}
           </div>
