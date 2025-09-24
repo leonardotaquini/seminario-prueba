@@ -1,20 +1,50 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 
 const INITIAL_TIME = 90 * 60;
 const ACCESS_CODE = "6647";
 const PENALTY = 5 * 60;
 
+const formSchema = z.object({
+  code: z
+    .string()
+    .min(4, { message: "El código debe tener 4 dígitos" })
+    .max(4, { message: "El código debe tener 4 dígitos" })
+    .regex(/^[0-9]+$/, { message: "Solo se permiten números" }),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
 type Status = "idle" | "success" | "error" | "exploded";
 
 export default function Home() {
   const [secondsRemaining, setSecondsRemaining] = useState(INITIAL_TIME);
-  const [code, setCode] = useState("");
   const [status, setStatus] = useState<Status>("idle");
 
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: { code: "" },
+  });
+
+  const isTerminalState = status === "success" || status === "exploded";
+
   useEffect(() => {
-    if (status === "success" || status === "exploded") {
+    if (isTerminalState) {
       return;
     }
 
@@ -29,7 +59,7 @@ export default function Home() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [status]);
+  }, [isTerminalState]);
 
   useEffect(() => {
     if (secondsRemaining <= 0 && status !== "success") {
@@ -51,21 +81,19 @@ export default function Home() {
     return `${hours}:${minutes}:${seconds}`;
   }, [secondsRemaining]);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    if (status === "success" || status === "exploded") {
+  const onSubmit = (values: FormValues) => {
+    if (isTerminalState) {
       return;
     }
 
-    if (code === ACCESS_CODE) {
+    if (values.code === ACCESS_CODE) {
       setStatus("success");
     } else {
       setStatus("error");
       setSecondsRemaining((prev) => Math.max(prev - PENALTY, 0));
     }
 
-    setCode("");
+    form.reset();
   };
 
   const statusMessage = (() => {
@@ -102,34 +130,51 @@ export default function Home() {
           </div>
         </section>
 
-        <form
-          onSubmit={handleSubmit}
-          className="flex w-full max-w-sm flex-col gap-4"
-        >
-          <label className="text-left text-sm font-semibold text-slate-200">
-            Codigo de acceso
-          </label>
-          <input
-            value={code}
-            onChange={(event) =>
-              setCode(event.target.value.replace(/[^0-9]/g, "").slice(0, 4))
-            }
-            inputMode="numeric"
-            pattern="\\d{4}"
-            maxLength={4}
-            disabled={status === "success" || status === "exploded"}
-            className="w-full rounded-lg border border-slate-600 bg-slate-950/70 px-4 py-3 text-center text-2xl tracking-[0.5em] text-slate-100 outline-none transition focus:border-amber-400 focus:text-amber-300 disabled:cursor-not-allowed disabled:text-slate-500"
-            placeholder="0000"
-            aria-label="Codigo de acceso"
-          />
-          <button
-            type="submit"
-            disabled={status === "success" || status === "exploded"}
-            className="rounded-lg border border-amber-500/60 bg-gradient-to-br from-amber-500 to-orange-600 px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-slate-950 shadow-lg shadow-orange-500/30 transition hover:from-amber-400 hover:to-orange-500 disabled:cursor-not-allowed disabled:border-slate-700 disabled:from-slate-700 disabled:to-slate-800 disabled:text-slate-400"
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex w-full max-w-sm flex-col gap-4"
           >
-            Ingresar codigo
-          </button>
-        </form>
+            <FormField
+              control={form.control}
+              name="code"
+              render={({ field }) => (
+                <FormItem className="space-y-2">
+                  <FormLabel className="text-left text-sm font-semibold text-slate-200">
+                    Codigo de acceso
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value ?? ""}
+                      onChange={(event) => {
+                        const sanitizedValue = event.target.value
+                          .replace(/[^0-9]/g, "")
+                          .slice(0, 4);
+                        field.onChange(sanitizedValue);
+                      }}
+                      inputMode="numeric"
+                      pattern="\\d{4}"
+                      maxLength={4}
+                      disabled={isTerminalState}
+                      placeholder="0000"
+                      aria-label="Codigo de acceso"
+                      className="h-auto rounded-lg border border-slate-600 bg-slate-950/70 px-4 py-3 text-center text-2xl tracking-[0.5em] text-slate-100 outline-none transition focus-visible:ring-0 focus:border-amber-400 focus:text-amber-300 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-900 disabled:text-slate-500"
+                    />
+                  </FormControl>
+                  <FormMessage className="text-xs uppercase tracking-[0.2em] text-red-400" />
+                </FormItem>
+              )}
+            />
+            <Button
+              type="submit"
+              disabled={isTerminalState}
+              className="rounded-lg border border-amber-500/60 bg-gradient-to-br from-amber-500 to-orange-600 px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-slate-950 shadow-lg shadow-orange-500/30 transition hover:from-amber-400 hover:to-orange-500 disabled:cursor-not-allowed disabled:border-slate-700 disabled:from-slate-700 disabled:to-slate-800 disabled:text-slate-400"
+            >
+              Ingresar codigo
+            </Button>
+          </form>
+        </Form>
 
         {statusMessage && (
           <div
