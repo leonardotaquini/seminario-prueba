@@ -88,7 +88,7 @@ export default function Home() {
       <div className="relative z-10 mx-4 flex w-full max-w-xl flex-col items-center gap-8 rounded-2xl border border-slate-700/60 bg-slate-900/70 p-10 shadow-[0_0_60px_rgba(8,47,73,0.45)] backdrop-blur">
         <header className="flex flex-col items-center gap-2 text-center">
           <p className="text-sm uppercase tracking-[0.4em] text-amber-400/80">panel de control</p>
-          <h1 className="text-4xl font-semibold text-slate-100">Reactor Omega</h1>
+          <h1 className="text-4xl font-semibold text-slate-100">Amenaza de Reactor Inestable</h1>
           <p className="max-w-md text-sm text-slate-300/80">
             Introduce el codigo de estabilizacion antes de que se agote el
             temporizador.
@@ -145,7 +145,7 @@ export default function Home() {
           </div>
         )}
       </div>
-      <div className="pointer-events-none absolute inset-0 bg-[url('https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1400&q=80')] bg-cover bg-center mix-blend-overlay opacity-20" />
+      <div className="pointer-events-none absolute inset-0 bg-[url('https://images.pexels.com/photos/459728/pexels-photo-459728.jpeg')] bg-cover bg-center mix-blend-overlay opacity-20" />
     </main>
   );
 }
